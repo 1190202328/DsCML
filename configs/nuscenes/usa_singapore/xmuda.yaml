@@ -8,16 +8,16 @@ DATASET_SOURCE:
   TYPE: "NuScenesSCN"
   TRAIN: ("train_usa",)
   NuScenesSCN:
-    preprocess_dir: "../../../4t/datasets/datasets_local/datasets_mjaritz/nuscenes_preprocess/preprocess"
-    nuscenes_dir: "../../../4t/datasets/datasets_local/datasets_mjaritz/nuscenes_preprocess"  # only front cam images are needed
+    preprocess_dir: "/nfs/ofs-902-1/object-detection/jiangjing/experiments/xmuda/data/nuscenes_preprocess/preprocess"
+    nuscenes_dir: "/nfs/s3_common_dataset/nuscenes-full-data-v1.0"  # only front cam images are needed
 DATASET_TARGET:
   TYPE: "NuScenesSCN"
   TRAIN: ("train_singapore",)
   VAL: ("val_singapore",)
   TEST: ("test_singapore",)
   NuScenesSCN:
-    preprocess_dir: "../../../4t/datasets/datasets_local/datasets_mjaritz/nuscenes_preprocess/preprocess"
-    nuscenes_dir: "../../../4t/datasets/datasets_local/datasets_mjaritz/nuscenes_preprocess"  # only front cam images are needed
+    preprocess_dir: "/nfs/ofs-902-1/object-detection/jiangjing/experiments/xmuda/data/nuscenes_preprocess/preprocess"
+    nuscenes_dir: "/nfs/s3_common_dataset/nuscenes-full-data-v1.0"  # only front cam images are needed
 DATALOADER:
   NUM_WORKERS: 4
 OPTIMIZER:
@@ -41,7 +41,7 @@ TRAIN:
   BATCH_SIZE: 8
   SUMMARY_PERIOD: 50
   CHECKPOINT_PERIOD: 2000
-  CLASS_WEIGHTS: [2.47956584, 4.26788384, 5.71114131, 3.80241668, 1.]
+  CLASS_WEIGHTS: [ 2.47956584, 4.26788384, 5.71114131, 3.80241668, 1. ]
   XMUDA:
     lambda_xm_src: 0.8
     lambda_xm_trg: 0.1
@@ -57,4 +57,4 @@ TRAIN:
 VAL:
   BATCH_SIZE: 32
   PERIOD: 2000
-#OUTPUT_DIR: "path/to/output/directory/@"  #  @ will be replaced with config path, e.g. nuscenes/usa_singapore/xmuda
+OUTPUT_DIR: "/nfs/ofs-902-1/object-detection/jiangjing/experiments/DsCML/ckpt/nuscenes/usa_singapore/DsCML"  #  @ will be replaced with config path, e.g. nuscenes/usa_singapore/xmuda

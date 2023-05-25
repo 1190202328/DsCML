@@ -166,7 +166,7 @@ class NuScenesSCN(NuScenesBase):
 
         out_dict = {}
 
-        keep_idx = np.ones(len(points), dtype=np.bool)
+        keep_idx = np.ones(len(points), dtype=np.bool_)
         if self.use_image:
             points_img = data_dict['points_img'].copy()
             img_path = osp.join(self.nuscenes_dir, data_dict['camera_path'])

@@ -195,7 +195,7 @@ class SemanticKITTISCN(SemanticKITTIBase):
 
         out_dict = {}
 
-        keep_idx = np.ones(len(points), dtype=np.bool)
+        keep_idx = np.ones(len(points), dtype=np.bool_)
         points_img = data_dict['points_img'].copy()
         img_path = osp.join(self.semantic_kitti_dir, data_dict['camera_path'])
         image = Image.open(img_path)
