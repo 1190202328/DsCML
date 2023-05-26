@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-import sys
 import os
+import sys
+
 sys.path.append(os.getcwd())
 import os.path as osp
 import argparse
@@ -23,7 +24,7 @@ from DsCML.data.build import build_dataloader
 from DsCML.data.utils.validate import validate
 from DsCML.models.losses import entropy_loss
 import pandas as pd
-import numpy as np
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='DsCML training')
@@ -45,6 +46,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
 def init_metric_logger(metric_list):
     new_metric_list = []
     for metric in metric_list:
@@ -65,25 +67,26 @@ def train(cfg, output_dir='', run_name=''):
 
     set_random_seed(cfg.RNG_SEED)
 
-    # build 2d model
+    # 1. 构建模型
+    # 1.1 build 2d model
     model_2d, train_metric_2d = build_model_2d(cfg)
     logger.info('Build 2D model:\n{}'.format(str(model_2d)))
     num_params = sum(param.numel() for param in model_2d.parameters())
     print('#Parameters: {:.2e}'.format(num_params))
 
-    # build cross modal learning head for 2D
+    # 1.2 build cross modal learning head for 2D
     LH_2d = build_2d_L2G(cfg)
     logger.info('Build 2D model learning head:\n{}'.format(str(LH_2d)))
     num_params = sum(param.numel() for param in LH_2d.parameters())
     print('#Parameters: {:.2e}'.format(num_params))
 
-    # build 3d model
+    # 1.3 build 3d model
     model_3d, train_metric_3d = build_model_3d(cfg)
     logger.info('Build 3D model:\n{}'.format(str(model_3d)))
     num_params = sum(param.numel() for param in model_3d.parameters())
     print('#Parameters: {:.2e}'.format(num_params))
 
-    # build cross modal learning head for 3D
+    # 1.4 build cross modal learning head for 3D
     LH_3d = build_3d_L2G(cfg)
     logger.info('Build 3D model learning head:\n{}'.format(str(LH_3d)))
     num_params = sum(param.numel() for param in LH_3d.parameters())
@@ -94,14 +97,17 @@ def train(cfg, output_dir='', run_name=''):
     model_3d = model_3d.cuda()
     LH_3d = LH_3d.cuda()
 
+    # 2. 构建优化器
     # build optimizer
-    optimizer_2d = build_optimizer(cfg, model_2d,LH_2d)
-    optimizer_3d = build_optimizer(cfg, model_3d,LH_3d)
+    optimizer_2d = build_optimizer(cfg, model_2d, LH_2d)
+    optimizer_3d = build_optimizer(cfg, model_3d, LH_3d)
 
+    # 3. 构建scheduler
     # build lr scheduler
     scheduler_2d = build_scheduler(cfg, optimizer_2d)
     scheduler_3d = build_scheduler(cfg, optimizer_3d)
 
+    # 4. 构建checkpointer
     # build checkpointer
     # Note that checkpointer will load state_dict of model, optimizer and scheduler.
     checkpointer_2d = CheckpointerV2(model_2d,
@@ -114,13 +120,14 @@ def train(cfg, output_dir='', run_name=''):
     checkpoint_data_2d = checkpointer_2d.load(cfg.RESUME_PATH, resume=cfg.AUTO_RESUME, resume_states=cfg.RESUME_STATES)
 
     checkpointer_2d_LH = CheckpointerV2(LH_2d,
-                                     optimizer=optimizer_2d,
-                                     scheduler=scheduler_2d,
-                                     save_dir=output_dir,
-                                     logger=logger,
-                                     postfix='_2d_LH',
-                                     max_to_keep=cfg.TRAIN.MAX_TO_KEEP)
-    checkpoint_data_2d_LH = checkpointer_2d_LH.load(cfg.RESUME_PATH, resume=cfg.AUTO_RESUME, resume_states=cfg.RESUME_STATES)
+                                        optimizer=optimizer_2d,
+                                        scheduler=scheduler_2d,
+                                        save_dir=output_dir,
+                                        logger=logger,
+                                        postfix='_2d_LH',
+                                        max_to_keep=cfg.TRAIN.MAX_TO_KEEP)
+    checkpoint_data_2d_LH = checkpointer_2d_LH.load(cfg.RESUME_PATH, resume=cfg.AUTO_RESUME,
+                                                    resume_states=cfg.RESUME_STATES)
 
     checkpointer_3d = CheckpointerV2(model_3d,
                                      optimizer=optimizer_3d,
@@ -132,13 +139,14 @@ def train(cfg, output_dir='', run_name=''):
     checkpoint_data_3d = checkpointer_3d.load(cfg.RESUME_PATH, resume=cfg.AUTO_RESUME, resume_states=cfg.RESUME_STATES)
 
     checkpointer_3d_LH = CheckpointerV2(LH_3d,
-                                     optimizer=optimizer_2d,
-                                     scheduler=scheduler_2d,
-                                     save_dir=output_dir,
-                                     logger=logger,
-                                     postfix='_3d_LH',
-                                     max_to_keep=cfg.TRAIN.MAX_TO_KEEP)
-    checkpoint_data_3d_LH = checkpointer_3d_LH.load(cfg.RESUME_PATH, resume=cfg.AUTO_RESUME, resume_states=cfg.RESUME_STATES)
+                                        optimizer=optimizer_2d,
+                                        scheduler=scheduler_2d,
+                                        save_dir=output_dir,
+                                        logger=logger,
+                                        postfix='_3d_LH',
+                                        max_to_keep=cfg.TRAIN.MAX_TO_KEEP)
+    checkpoint_data_3d_LH = checkpointer_3d_LH.load(cfg.RESUME_PATH, resume=cfg.AUTO_RESUME,
+                                                    resume_states=cfg.RESUME_STATES)
 
     ckpt_period = cfg.TRAIN.CHECKPOINT_PERIOD
 
@@ -149,6 +157,7 @@ def train(cfg, output_dir='', run_name=''):
     else:
         summary_writer = None
 
+    # 5. 训练
     # ---------------------------------------------------------------------------- #
     # Train
     # ---------------------------------------------------------------------------- #
@@ -203,9 +212,9 @@ def train(cfg, output_dir='', run_name=''):
     train_iter_src = enumerate(train_dataloader_src)
     train_iter_trg = enumerate(train_dataloader_trg)
 
-    l1_loss_fn = torch.nn.L1Loss(reduce=True,size_average=True)
+    l1_loss_fn = torch.nn.L1Loss(reduce=True, size_average=True)
 
-    def cc(a,b):
+    def cc(a, b):
         # lst = []
         # a = a.reshape((a.size()[0] * a.size()[1]))
         # b = b.reshape((b.size()[0] * b.size()[1]))
@@ -246,16 +255,18 @@ def train(cfg, output_dir='', run_name=''):
         optimizer_2d.zero_grad()
         optimizer_3d.zero_grad()
 
+        # 5.1 在源上进行训练
         # ---------------------------------------------------------------------------- #
         # Train on source
         # ---------------------------------------------------------------------------- #
 
+        # 5.1.1 forward
         preds_2d_fe, out_2D_feature, img_indices = model_2d(data_batch_src)
         preds_2d_be = LH_2d(out_2D_feature, img_indices)
         preds_3d_fe, out_3D_feature = model_3d(data_batch_src)
         preds_3d_be = LH_3d(out_3D_feature)
 
-        # segmentation loss: cross entropy
+        # 5.1.2 segmentation loss: cross entropy
         seg_loss_src_2d = F.cross_entropy(preds_2d_fe['seg_logit'], data_batch_src['seg_label'], weight=class_weights)
         seg_loss_src_3d = F.cross_entropy(preds_3d_fe['seg_logit'], data_batch_src['seg_label'], weight=class_weights)
         train_metric_logger.update(seg_loss_src_2d=seg_loss_src_2d, seg_loss_src_3d=seg_loss_src_3d)
@@ -264,7 +275,7 @@ def train(cfg, output_dir='', run_name=''):
         loss_global = 0
 
         if cfg.TRAIN.XMUDA.lambda_xm_src > 0:
-            # cross-modal loss: KL divergence
+            # 5.1.3 cross-modal loss: KL divergence
 
             seg_logit_2d_avg = preds_2d_be['seg_logit_avg']
             seg_logit_2d_max = preds_2d_be['seg_logit_max']
@@ -274,9 +285,11 @@ def train(cfg, output_dir='', run_name=''):
             seg_logit_3d_global = preds_3d_be['seg_logit_global']
 
             xm_loss_src_2d_avg = F.kl_div(F.log_softmax(seg_logit_2d_avg, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
-                                      reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_avg, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1))
+                                          F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
+                                          reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_avg, dim=1),
+                                                                               F.softmax(
+                                                                                   preds_3d_fe['seg_logit'].detach(),
+                                                                                   dim=1))
 
             # print('2D_3D_src_avg_1:',F.kl_div(F.log_softmax(seg_logit_2d_avg, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
@@ -284,9 +297,11 @@ def train(cfg, output_dir='', run_name=''):
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1)))
 
             xm_loss_src_2d_max = F.kl_div(F.log_softmax(seg_logit_2d_max, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
-                                      reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_max, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1))
+                                          F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
+                                          reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_max, dim=1),
+                                                                               F.softmax(
+                                                                                   preds_3d_fe['seg_logit'].detach(),
+                                                                                   dim=1))
 
             # print('2D_3D_src_max_1:',F.kl_div(F.log_softmax(seg_logit_2d_max, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
@@ -294,20 +309,23 @@ def train(cfg, output_dir='', run_name=''):
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1)))
 
             xm_loss_src_2d_min = F.kl_div(F.log_softmax(seg_logit_2d_min, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
-                                      reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_min, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1))
+                                          F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
+                                          reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_min, dim=1),
+                                                                               F.softmax(
+                                                                                   preds_3d_fe['seg_logit'].detach(),
+                                                                                   dim=1))
 
             # print('2D_3D_src_min_1:',F.kl_div(F.log_softmax(seg_logit_2d_min, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
             #                           reduction='none').sum(1).mean(),'2D_3D_src_min_2:',cc(F.log_softmax(seg_logit_2d_min, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1)))
 
-            xm_loss_src_2d = (xm_loss_src_2d_avg + xm_loss_src_2d_max + xm_loss_src_2d_min)/3
+            xm_loss_src_2d = (xm_loss_src_2d_avg + xm_loss_src_2d_max + xm_loss_src_2d_min) / 3
             xm_loss_src_3d = F.kl_div(F.log_softmax(seg_logit_3d_point, dim=1),
                                       F.softmax(preds_2d_fe['seg_logit'].detach(), dim=1),
                                       reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_3d_point, dim=1),
-                                      F.softmax(preds_2d_fe['seg_logit'].detach(), dim=1))
+                                                                           F.softmax(preds_2d_fe['seg_logit'].detach(),
+                                                                                     dim=1))
 
             # print('3D_2D_src_point_1:',F.kl_div(F.log_softmax(seg_logit_3d_point, dim=1),
             #                           F.softmax(preds_2d_fe['seg_logit'].detach(), dim=1),
@@ -318,23 +336,24 @@ def train(cfg, output_dir='', run_name=''):
                                        xm_loss_src_3d=xm_loss_src_3d)
             loss_2d += cfg.TRAIN.XMUDA.lambda_xm_src * xm_loss_src_2d
             loss_3d += cfg.TRAIN.XMUDA.lambda_xm_src * xm_loss_src_3d
-            loss_global = cfg.TRAIN.XMUDA.lambda_xm_global_src * l1_loss_fn(seg_logit_2d_global,seg_logit_3d_global)
-
+            loss_global = cfg.TRAIN.XMUDA.lambda_xm_global_src * l1_loss_fn(seg_logit_2d_global, seg_logit_3d_global)
 
         # update metric (e.g. IoU)
         with torch.no_grad():
             train_metric_2d.update_dict(preds_2d_fe, data_batch_src)
             train_metric_3d.update_dict(preds_3d_fe, data_batch_src)
 
-        # backward
+        # 5.1.4 backward
         loss_2d.backward(retain_graph=True)
         loss_3d.backward(retain_graph=True)
         loss_global.backward()
 
+        # 5.2 在目标上进行训练
         # ---------------------------------------------------------------------------- #
         # Train on target
         # ---------------------------------------------------------------------------- #
 
+        # 5.2.1 forward
         preds_2d_fe, out_2D_feature, img_indices = model_2d(data_batch_trg)
         preds_2d_be = LH_2d(out_2D_feature, img_indices)
         preds_3d_fe, out_3D_feature = model_3d(data_batch_trg)
@@ -344,7 +363,7 @@ def train(cfg, output_dir='', run_name=''):
         loss_3d = []
         loss_global = 0
         if cfg.TRAIN.XMUDA.lambda_xm_trg > 0:
-            # cross-modal loss: KL divergence
+            # 5.2.2 cross-modal loss: KL divergence
 
             seg_logit_2d_avg = preds_2d_be['seg_logit_avg']
             seg_logit_2d_max = preds_2d_be['seg_logit_max']
@@ -358,11 +377,12 @@ def train(cfg, output_dir='', run_name=''):
             # seg_logit_2d_global = preds_2d_be['seg_logit4'] if cfg.MODEL_2D.DUAL_HEAD else preds_2d_fe['seg_logit']
             # seg_logit_3d_global = preds_3d_be['seg_logit4'] if cfg.MODEL_3D.DUAL_HEAD else preds_3d_fe['seg_logit']
 
-
             xm_loss_trg_2d_avg = F.kl_div(F.log_softmax(seg_logit_2d_avg, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
-                                      reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_avg, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1))
+                                          F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
+                                          reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_avg, dim=1),
+                                                                               F.softmax(
+                                                                                   preds_3d_fe['seg_logit'].detach(),
+                                                                                   dim=1))
 
             # print('2D_3D_trg_avg_1:',F.kl_div(F.log_softmax(seg_logit_2d_avg, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
@@ -370,9 +390,11 @@ def train(cfg, output_dir='', run_name=''):
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1)))
 
             xm_loss_trg_2d_max = F.kl_div(F.log_softmax(seg_logit_2d_max, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
-                                      reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_max, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1))
+                                          F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
+                                          reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_max, dim=1),
+                                                                               F.softmax(
+                                                                                   preds_3d_fe['seg_logit'].detach(),
+                                                                                   dim=1))
 
             # print('2D_3D_trg_max_1:',F.kl_div(F.log_softmax(seg_logit_2d_max, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
@@ -380,20 +402,23 @@ def train(cfg, output_dir='', run_name=''):
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1)))
 
             xm_loss_trg_2d_min = F.kl_div(F.log_softmax(seg_logit_2d_min, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
-                                      reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_min, dim=1),
-                                      F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1))
+                                          F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
+                                          reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_2d_min, dim=1),
+                                                                               F.softmax(
+                                                                                   preds_3d_fe['seg_logit'].detach(),
+                                                                                   dim=1))
 
             # print('2D_3D_trg_min_1:',F.kl_div(F.log_softmax(seg_logit_2d_min, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1),
             #                           reduction='none').sum(1).mean(),'2D_3D_trg_min_2:',cc(F.log_softmax(seg_logit_2d_min, dim=1),
             #                           F.softmax(preds_3d_fe['seg_logit'].detach(), dim=1)))
 
-            xm_loss_trg_2d = (xm_loss_trg_2d_avg + xm_loss_trg_2d_max + xm_loss_trg_2d_min)/3
+            xm_loss_trg_2d = (xm_loss_trg_2d_avg + xm_loss_trg_2d_max + xm_loss_trg_2d_min) / 3
             xm_loss_trg_3d = F.kl_div(F.log_softmax(seg_logit_3d_point, dim=1),
                                       F.softmax(preds_2d_fe['seg_logit'].detach(), dim=1),
                                       reduction='none').sum(1).mean() + cc(F.log_softmax(seg_logit_3d_point, dim=1),
-                                      F.softmax(preds_2d_fe['seg_logit'].detach(), dim=1))
+                                                                           F.softmax(preds_2d_fe['seg_logit'].detach(),
+                                                                                     dim=1))
 
             # print('3D_2D_trg_point_1:',F.kl_div(F.log_softmax(seg_logit_3d_point, dim=1),
             #                           F.softmax(preds_2d_fe['seg_logit'].detach(), dim=1),
@@ -408,6 +433,7 @@ def train(cfg, output_dir='', run_name=''):
             loss_global = cfg.TRAIN.XMUDA.lambda_xm_global_trg * l1_loss_fn(seg_logit_2d_global, seg_logit_3d_global)
 
         if cfg.TRAIN.XMUDA.lambda_pl > 0:
+            # 暂时没用上，是伪标签的
             # uni-modal self-training loss with pseudo labels
             pl_loss_trg_2d = F.cross_entropy(preds_2d_fe['seg_logit'], data_batch_trg['pseudo_label_2d'])
             pl_loss_trg_3d = F.cross_entropy(preds_3d_fe['seg_logit'], data_batch_trg['pseudo_label_3d'])
@@ -416,7 +442,7 @@ def train(cfg, output_dir='', run_name=''):
             loss_2d.append(cfg.TRAIN.XMUDA.lambda_pl * pl_loss_trg_2d)
             loss_3d.append(cfg.TRAIN.XMUDA.lambda_pl * pl_loss_trg_3d)
         if cfg.TRAIN.XMUDA.lambda_minent > 0:
-
+            # 暂时没用上，和xmuda一样
             # MinEnt
             minent_loss_trg_2d = entropy_loss(F.softmax(preds_2d_fe['seg_logit'], dim=1))
             minent_loss_trg_3d = entropy_loss(F.softmax(preds_3d_fe['seg_logit'], dim=1))
@@ -425,10 +451,12 @@ def train(cfg, output_dir='', run_name=''):
             loss_2d.append(cfg.TRAIN.XMUDA.lambda_minent * minent_loss_trg_2d)
             loss_3d.append(cfg.TRAIN.XMUDA.lambda_minent * minent_loss_trg_3d)
 
+        # 5.2.3 backward
         sum(loss_2d).backward(retain_graph=True)
         sum(loss_3d).backward(retain_graph=True)
         loss_global.backward()
 
+        # 5.3 optimizer.step()
         optimizer_2d.step()
         optimizer_3d.step()
 

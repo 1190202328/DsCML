@@ -5,15 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3b17c37e-bae5-4e48-9d49-e7f866edaab6" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/xmuda-master.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/xmuda-master.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DsCML/data/nuscenes/nuscenes_dataloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/DsCML/data/nuscenes/nuscenes_dataloader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DsCML/data/semantic_kitti/semantic_kitti_dataloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/DsCML/data/semantic_kitti/semantic_kitti_dataloader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/nuscenes/usa_singapore/xmuda.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/nuscenes/usa_singapore/xmuda.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DsCML/train_DsCML.py" beforeDir="false" afterPath="$PROJECT_DIR$/DsCML/train_DsCML.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,21 +219,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "true",
-    "last_opened_file_path": "/Users/didi/Desktop/DsCML",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/didi/Desktop/DsCML&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -386,7 +379,9 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607519743236</updated>
-      <workItem from="1685003425077" duration="1777000" />
+      <workItem from="1685003425077" duration="2236000" />
+      <workItem from="1685089620802" duration="366000" />
+      <workItem from="1685097912233" duration="1422000" />
     </task>
     <servers />
   </component>
@@ -420,9 +415,6 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="VcsContentAnnotationSettings">
-    <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/configs/nuscenes/day_night/baseline.yaml">
