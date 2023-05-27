@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import os
+import sys
+
+sys.path.append(os.getcwd())
 import os.path as osp
 import argparse
 import logging

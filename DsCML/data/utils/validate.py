@@ -1,7 +1,7 @@
-import numpy as np
 import logging
 import time
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -82,7 +82,8 @@ def validate(cfg,
                     pselab_data_list.append({
                         'probs_2d': curr_probs_2d[range(len(pred_label_2d)), pred_label_2d].cpu().numpy(),
                         'pseudo_label_2d': pred_label_2d.astype(np.uint8),
-                        'probs_3d': curr_probs_3d[range(len(pred_label_3d)), pred_label_3d].cpu().numpy() if model_3d else None,
+                        'probs_3d': curr_probs_3d[
+                            range(len(pred_label_3d)), pred_label_3d].cpu().numpy() if model_3d else None,
                         'pseudo_label_3d': pred_label_3d.astype(np.uint8) if model_3d else None
                     })
 
@@ -126,6 +127,10 @@ def validate(cfg,
             logger.info('{} overall accuracy={:.2f}%'.format(modality, 100.0 * evaluator.overall_acc))
             logger.info('{} overall IOU={:.2f}'.format(modality, 100.0 * evaluator.overall_iou))
             logger.info('{} class-wise segmentation accuracy and IoU.\n{}'.format(modality, evaluator.print_table()))
+
+            print('{} overall accuracy={:.2f}%'.format(modality, 100.0 * evaluator.overall_acc))
+            print('{} overall IOU={:.2f}'.format(modality, 100.0 * evaluator.overall_iou))
+            print('{} class-wise segmentation accuracy and IoU.\n{}'.format(modality, evaluator.print_table()))
 
         if pselab_path is not None:
             np.save(pselab_path, pselab_data_list)
