@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from DsCML.models.Discriminator import FCDiscriminator
 from DsCML.models.resnet34_unet import UNetResNet34
 from DsCML.models.scn_unet import UNetSCN
-from DsCML.models.Discriminator import FCDiscriminator
+
 
 class Net2DSeg(nn.Module):
     def __init__(self,
@@ -22,16 +24,15 @@ class Net2DSeg(nn.Module):
             raise NotImplementedError('2D backbone {} not supported'.format(backbone_2d))
 
         # segmentation head
-        self.con1_1_avg = nn.Conv2d(feat_channels,num_classes,kernel_size=1,stride=1)
+        self.con1_1_avg = nn.Conv2d(feat_channels, num_classes, kernel_size=1, stride=1)
         # self.con1_1_max = nn.Conv2d(feat_channels,num_classes,kernel_size=1,stride=1)
         # self.con1_1_min = nn.Conv2d(feat_channels,num_classes,kernel_size=1,stride=1)
         # self.linear = nn.Linear(feat_channels, num_classes)
-        self.dow_avg = nn.AvgPool2d((5,5),stride=(1,1),padding=(2,2))
+        self.dow_avg = nn.AvgPool2d((5, 5), stride=(1, 1), padding=(2, 2))
         # self.dow_max = nn.MaxPool2d((3,3),stride=(1,1),padding=(1,1))
         # self.dow_min = nn.MaxPool2d((3,3),stride=(1,1),padding=(1,1))
         # 2nd segmentation head
         self.dual_head = dual_head
-
 
     def forward(self, data_batch):
         # (batch_size, 3, H, W)
@@ -39,10 +40,26 @@ class Net2DSeg(nn.Module):
         img_indices = data_batch['img_indices']
 
         # 2D network
+        # print(f'img.shape = {img.shape}')
+        # # img.shape = torch.Size([8, 3, 225, 400])                      # [B, C, H, W]
+
         out_2D_feature = self.net_2d(img)
+
+        # print(f'out_2D_feature.shape = {out_2D_feature.shape}')
+        # # out_2D_feature.shape = torch.Size([8, 64, 225, 400])            # [B, C, H, W]
+
         out_2D_feature_avg = self.dow_avg(out_2D_feature)
+
+        # print(f'out_2D_feature_avg.shape = {out_2D_feature_avg.shape}')
+        # # out_2D_feature_avg.shape = torch.Size([8, 64, 225, 400])          # [B, C, H, W]
+
         out_2D_feature_avg = self.con1_1_avg(out_2D_feature_avg)
+
+        # print(f'out_2D_feature_avg.shape = {out_2D_feature_avg.shape}')
+        # # out_2D_feature_avg.shape = torch.Size([8, 5, 225, 400])             # [B, C, H, W]
+
         # 2D-3D feature lifting
+        # 2D与3D特征对齐
         img_feats = []
         for i in range(out_2D_feature_avg.shape[0]):
             img_feats.append(out_2D_feature_avg.permute(0, 2, 3, 1)[i][img_indices[i][:, 0], img_indices[i][:, 1]])
@@ -56,9 +73,9 @@ class Net2DSeg(nn.Module):
         preds = {
             'seg_logit': x,
         }
+        # # preds_2d_fe[seg_logit].shape = torch.Size([21371, 5])             # [N, num_class]
 
         return preds, out_2D_feature, img_indices
-
 
 
 class L2G_classifier_2D(nn.Module):
@@ -68,8 +85,6 @@ class L2G_classifier_2D(nn.Module):
                  ):
         super(L2G_classifier_2D, self).__init__()
 
-
-
         # segmentation head
         self.con1_1_avg = nn.Conv2d(input_channels, num_classes, kernel_size=1, stride=1)
         self.con1_1_max = nn.Conv2d(input_channels, num_classes, kernel_size=1, stride=1)
@@ -78,11 +93,9 @@ class L2G_classifier_2D(nn.Module):
         self.dow_avg = nn.AvgPool2d((5, 5), stride=(1, 1), padding=(2, 2))
         self.dow_max = nn.MaxPool2d((5, 5), stride=(1, 1), padding=(2, 2))
         self.dow_min = nn.MaxPool2d((5, 5), stride=(1, 1), padding=(2, 2))
-        self.dow_ = nn.AdaptiveAvgPool2d((1,1))
+        self.dow_ = nn.AdaptiveAvgPool2d((1, 1))
 
-
-
-    def forward(self, input_2D_feature,img_indices):
+    def forward(self, input_2D_feature, img_indices):
         # (batch_size, 3, H, W)
 
         avg_feature = self.dow_avg(input_2D_feature)
@@ -115,19 +128,14 @@ class L2G_classifier_2D(nn.Module):
         global_wise_pre = self.linear(global_wise_line)
 
         preds = {
-            'feats': (avg_line+max_line+min_line)/3,
+            'feats': (avg_line + max_line + min_line) / 3,
             'seg_logit_avg': avg_line,
             'seg_logit_max': max_line,
             'seg_logit_min': min_line,
             'seg_logit_global': global_wise_pre
         }
 
-
-
         return preds
-
-
-
 
 
 class Net3DSeg(nn.Module):
@@ -151,7 +159,6 @@ class Net3DSeg(nn.Module):
         # 2nd segmentation head
         self.dual_head = dual_head
 
-
     def forward(self, data_batch):
         out_3D_feature = self.net_3d(data_batch['x'])
         x = self.linear(out_3D_feature)
@@ -160,10 +167,7 @@ class Net3DSeg(nn.Module):
             'seg_logit': x,
         }
 
-
-
-        return preds,out_3D_feature
-
+        return preds, out_3D_feature
 
 
 class L2G_classifier_3D(nn.Module):
@@ -173,15 +177,14 @@ class L2G_classifier_3D(nn.Module):
                  ):
         super(L2G_classifier_3D, self).__init__()
 
-
         # segmentation head
         self.linear_point = nn.Linear(input_channels, num_classes)
         self.linear_global = nn.Linear(input_channels, num_classes)
-        self.dow = nn.AvgPool1d(kernel_size=3,stride=1,padding=1)
+        self.dow = nn.AvgPool1d(kernel_size=3, stride=1, padding=1)
         self.dow_ = nn.AdaptiveAvgPool1d(8)
 
     def forward(self, input_3D_feature):
-        x = torch.transpose(input_3D_feature,0,1)
+        x = torch.transpose(input_3D_feature, 0, 1)
         x = x.unsqueeze(0)
         # local_wise_line = self.dow(x).squeeze(0)
         # local_wise_line = torch.transpose(local_wise_line,0,1)
@@ -200,8 +203,6 @@ class L2G_classifier_3D(nn.Module):
             'seg_logit_global': global_wise_pre
         }
 
-
-
         return preds
 
 
@@ -213,15 +214,12 @@ class Discriminator_(nn.Module):
         super(Discriminator_, self).__init__()
 
         # 3D network
-        self.net_3d = FCDiscriminator(DIMENSION=input_channels-1)
+        self.net_3d = FCDiscriminator(DIMENSION=input_channels - 1)
         # segmentation head
         self.linear_point = nn.Linear(self.net_3d.out_channels, num_classes)
         self.linear_batch = nn.Linear(self.net_3d.out_channels, num_classes)
         self.linear_batch = nn.Linear(self.net_3d.out_channels, num_classes)
         self.down = nn.AdaptiveAvgPool1d(8)
-
-
-
 
     def forward(self, input):
         out_3D_feature = self.net_3d(input)
@@ -241,6 +239,7 @@ class Discriminator_(nn.Module):
 
         return preds
 
+
 class Discriminator(nn.Module):
     def __init__(self,
                  input_channels,
@@ -255,23 +254,20 @@ class Discriminator(nn.Module):
         self.linear_point = nn.Linear(input_channels, num_classes)
 
         self.linear_batch_1 = nn.Linear(input_channels, middle_channel)
-        self.linear_batch_2 = nn.Linear(middle_channel, middle_channel*2)
-        self.linear_batch_3 = nn.Linear(middle_channel*2, middle_channel*4)
+        self.linear_batch_2 = nn.Linear(middle_channel, middle_channel * 2)
+        self.linear_batch_3 = nn.Linear(middle_channel * 2, middle_channel * 4)
         self.linear_batch_3_1 = nn.Linear(middle_channel * 4, middle_channel * 4)
         self.linear_batch_3_2 = nn.Linear(middle_channel * 4, middle_channel * 4)
-        self.linear_batch_4 = nn.Linear(middle_channel*4, middle_channel*8)
-        self.linear_batch_5 = nn.Linear(middle_channel*8, num_classes)
+        self.linear_batch_4 = nn.Linear(middle_channel * 4, middle_channel * 8)
+        self.linear_batch_5 = nn.Linear(middle_channel * 8, num_classes)
         self.down = nn.AdaptiveAvgPool1d(8)
 
         self.bn1 = nn.BatchNorm1d(middle_channel)
-        self.bn2 = nn.BatchNorm1d(middle_channel*2)
-        self.bn3 = nn.BatchNorm1d(middle_channel*4)
-        self.bn4 = nn.BatchNorm1d(middle_channel*8)
-
-
+        self.bn2 = nn.BatchNorm1d(middle_channel * 2)
+        self.bn3 = nn.BatchNorm1d(middle_channel * 4)
+        self.bn4 = nn.BatchNorm1d(middle_channel * 8)
 
     def forward(self, input):
-
         x_point = self.linear_point(input)
 
         x = F.relu(self.bn1(self.linear_batch_1(input)))
@@ -293,7 +289,6 @@ class Discriminator(nn.Module):
         }
 
         return preds
-
 
 
 def test_Net2DSeg():

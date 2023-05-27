@@ -262,9 +262,73 @@ def train(cfg, output_dir='', run_name=''):
 
         # 5.1.1 forward
         preds_2d_fe, out_2D_feature, img_indices = model_2d(data_batch_src)
+
+        # for key in data_batch_src.keys():
+        #     try:
+        #         print(f'data_batch_src[{key}].shape = {data_batch_src[key].shape}')
+        #     except AttributeError:
+        #         print(f'data_batch_src[{key}].len = {len(data_batch_src[key])}')
+        # print(f'data_batch_src[img_indices][0].shape = {data_batch_src["img_indices"][0].shape}')
+        # # data_batch_src[x].len = 2                                   # 一个源，一个目标
+        # # data_batch_src[seg_label].shape = torch.Size([21371])       # 3d点云的seg标签
+        # # data_batch_src[img].shape = torch.Size([8, 3, 225, 400])    # [B, C, W, H]
+        # # data_batch_src[img_indices].len = 8                         # image的id [B]
+        # # data_batch_src[img_indices][0].shape = (3110, 2)            # [?, ?]
+
+        # for i in range(len(data_batch_src["x"])):
+        #     print(f'data_batch_src[x][{i}].shape = {data_batch_src["x"][i].shape}')
+        # # data_batch_src[x][0].shape = torch.Size([21371, 4])           # [N, C]
+        # # data_batch_src[x][1].shape = torch.Size([21371, 1])           # [N, 1]
+
+        # for key in preds_2d_fe.keys():
+        #     try:
+        #         print(f'preds_2d_fe[{key}].shape = {preds_2d_fe[key].shape}')
+        #     except AttributeError:
+        #         print(f'preds_2d_fe[{key}].len = {len(preds_2d_fe[key])}')
+        # # preds_2d_fe[seg_logit].shape = torch.Size([21371, 5])             # [N, num_class]
+
         preds_2d_be = LH_2d(out_2D_feature, img_indices)
+
+        # print(f'out_2D_feature.shape = {out_2D_feature.shape}')
+        # # out_2D_feature.shape = torch.Size([8, 64, 225, 400])              # [B, C, W, H]
+        # print(f'img_indices.len = {len(img_indices)}')
+        # print(f'img_indices[0].shape = {img_indices[0].shape}')
+        # # img_indices.len = 8
+        # # img_indices[0].shape = (3110, 2)                                  # [?, ?]
+
+        # for key in preds_2d_be.keys():
+        #     try:
+        #         print(f'preds_2d_be[{key}].shape = {preds_2d_be[key].shape}')
+        #     except AttributeError:
+        #         print(f'preds_2d_be[{key}].len = {len(preds_2d_be[key])}')
+        # # preds_2d_be[feats].shape = torch.Size([21371, 5])             # [N, num_class]
+        # # preds_2d_be[seg_logit_avg].shape = torch.Size([21371, 5])
+        # # preds_2d_be[seg_logit_max].shape = torch.Size([21371, 5])
+        # # preds_2d_be[seg_logit_min].shape = torch.Size([21371, 5])
+        # # preds_2d_be[seg_logit_global].shape = torch.Size([8, 5])      # [B, num_class]
+
         preds_3d_fe, out_3D_feature = model_3d(data_batch_src)
+
+        # print(f'out_3D_feature.shape = {out_3D_feature.shape}')
+        # # out_3D_feature.shape = torch.Size([21371, 16])                # [N, C]
+
+        # for key in preds_3d_fe.keys():
+        #     try:
+        #         print(f'preds_3d_fe[{key}].shape = {preds_3d_fe[key].shape}')
+        #     except AttributeError:
+        #         print(f'preds_3d_fe[{key}].len = {len(preds_3d_fe[key])}')
+        # # preds_3d_fe[seg_logit].shape = torch.Size([21371, 5])             # [N, num_class]
+
         preds_3d_be = LH_3d(out_3D_feature)
+
+        # for key in preds_3d_be.keys():
+        #     try:
+        #         print(f'preds_3d_be[{key}].shape = {preds_3d_be[key].shape}')
+        #     except AttributeError:
+        #         print(f'preds_3d_be[{key}].len = {len(preds_3d_be[key])}')
+        # # preds_3d_be[feats].shape = torch.Size([21371, 16])              # [N, C]
+        # # preds_3d_be[seg_logit_point].shape = torch.Size([21371, 5])     # [N, num_class]
+        # # preds_3d_be[seg_logit_global].shape = torch.Size([8, 5])        # [B, C]
 
         # 5.1.2 segmentation loss: cross entropy
         seg_loss_src_2d = F.cross_entropy(preds_2d_fe['seg_logit'], data_batch_src['seg_label'], weight=class_weights)
