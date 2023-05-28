@@ -7,7 +7,6 @@
     <list default="true" id="3b17c37e-bae5-4e48-9d49-e7f866edaab6" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DsCML/models/xmuda_arch.py" beforeDir="false" afterPath="$PROJECT_DIR$/DsCML/models/xmuda_arch.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DsCML/train_DsCML.py" beforeDir="false" afterPath="$PROJECT_DIR$/DsCML/train_DsCML.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -383,7 +382,8 @@
       <workItem from="1685003425077" duration="2236000" />
       <workItem from="1685089620802" duration="366000" />
       <workItem from="1685097912233" duration="3313000" />
-      <workItem from="1685156173897" duration="8118000" />
+      <workItem from="1685156173897" duration="10664000" />
+      <workItem from="1685238834239" duration="5427000" />
     </task>
     <servers />
   </component>

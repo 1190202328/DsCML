@@ -98,9 +98,23 @@ class L2G_classifier_2D(nn.Module):
     def forward(self, input_2D_feature, img_indices):
         # (batch_size, 3, H, W)
 
+        # print(f'input_2D_feature.shape = {input_2D_feature.shape}')
+        # # input_2D_feature.shape = torch.Size([8, 64, 225, 400])          # [B, C, H, W]
+
         avg_feature = self.dow_avg(input_2D_feature)
+
+        # print(f'avg_feature.shape = {avg_feature.shape}')
+        # # avg_feature.shape = torch.Size([8, 64, 225, 400])               # [B, C, H, W]
+
         avg_feature = self.con1_1_avg(avg_feature)
+
+        # print(f'avg_feature.shape = {avg_feature.shape}')
+        # # avg_feature.shape = torch.Size([8, 5, 225, 400])                # [B, C, H, W]
+
         global_wise_line = self.dow_(input_2D_feature).squeeze()
+
+        # print(f'global_wise_line.shape = {global_wise_line.shape}')       # [B, C]
+        # # global_wise_line.shape = torch.Size([8, 64])
 
         avg_line = []
         for i in range(avg_feature.shape[0]):
@@ -125,7 +139,7 @@ class L2G_classifier_2D(nn.Module):
 
         # linear
         # point_wise_pre = self.linear(point_wise_line)
-        global_wise_pre = self.linear(global_wise_line)
+        global_wise_pre = self.linear(global_wise_line)                 # [B, num_class]
 
         preds = {
             'feats': (avg_line + max_line + min_line) / 3,
@@ -134,6 +148,12 @@ class L2G_classifier_2D(nn.Module):
             'seg_logit_min': min_line,
             'seg_logit_global': global_wise_pre
         }
+
+        # # preds_2d_be[feats].shape = torch.Size([21371, 5])             # [N, num_class]
+        # # preds_2d_be[seg_logit_avg].shape = torch.Size([21371, 5])
+        # # preds_2d_be[seg_logit_max].shape = torch.Size([21371, 5])
+        # # preds_2d_be[seg_logit_min].shape = torch.Size([21371, 5])
+        # # preds_2d_be[seg_logit_global].shape = torch.Size([8, 5])      # [B, num_class]
 
         return preds
 
@@ -184,13 +204,27 @@ class L2G_classifier_3D(nn.Module):
         self.dow_ = nn.AdaptiveAvgPool1d(8)
 
     def forward(self, input_3D_feature):
+        # print(f'input_3D_feature.shape = {input_3D_feature.shape}')
+        # # input_3D_feature.shape = torch.Size([21371, 16])        [N, C]
+
         x = torch.transpose(input_3D_feature, 0, 1)
         x = x.unsqueeze(0)
+
+        # print(f'x.shape = {x.shape}')
+        # # # x.shape = torch.Size([1, 16, 21371])
+
         # local_wise_line = self.dow(x).squeeze(0)
         # local_wise_line = torch.transpose(local_wise_line,0,1)
 
         global_wise_line = self.dow_(x).squeeze(0)
+
+        # print(f'global_wise_line.shape = {global_wise_line.shape}')
+        # # global_wise_line.shape = torch.Size([16, 8])
+
         global_wise_line = torch.transpose(global_wise_line, 0, 1)
+
+        # print(f'global_wise_line.shape = {global_wise_line.shape}')
+        # # global_wise_line.shape = torch.Size([8, 16])
 
         # linear
         point_wise_pre = self.linear_point(input_3D_feature)
@@ -202,6 +236,10 @@ class L2G_classifier_3D(nn.Module):
             'seg_logit_point': point_wise_pre,
             'seg_logit_global': global_wise_pre
         }
+
+        # # preds_3d_be[feats].shape = torch.Size([21371, 16])              # [N, C]
+        # # preds_3d_be[seg_logit_point].shape = torch.Size([21371, 5])     # [N, num_class]
+        # # preds_3d_be[seg_logit_global].shape = torch.Size([8, 5])        # [B, num_class]
 
         return preds
 
